@@ -34,15 +34,22 @@ def format_timestamp(seconds):
         return f"[{minutes:02d}:{secs:02d}]"
     
 
+PROXY_HOST = os.getenv("PROXY_HOST") or st.secrets.get("PROXY_HOST")
+PROXY_PORT = os.getenv("PROXY_PORT") or st.secrets.get("PROXY_PORT")
+PROXY_USER = os.getenv("PROXY_USER") or st.secrets.get("PROXY_USER")
+PROXY_PASS = os.getenv("PROXY_PASS") or st.secrets.get("PROXY_PASS")
+
 def get_transcript(parsed_url):
     try:
-        ytt_api = YouTubeTranscriptApi()
-        transcripts = ytt_api.fetch(parsed_url)  # remove languages=['en'] and keyword arg
+        proxy_url = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}"
+        ytt_api = YouTubeTranscriptApi(
+            proxies={"https": proxy_url, "http": proxy_url}
+        )
+        transcripts = ytt_api.fetch(parsed_url)
         full_text = " ".join(f"{format_timestamp(entry.start)} {entry.text}" for entry in transcripts)
         return full_text, len(full_text.split())
     except Exception as e:
         raise Exception(f"Transcript error: {e}")
-        return None, 0
 
 
 def get_summary(transcript_with_times):
