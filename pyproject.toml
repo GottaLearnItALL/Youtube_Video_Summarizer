@@ -10,4 +10,5 @@ dependencies = [
     "langchain-anthropic>=1.4.1",
     "streamlit>=1.57.0",
     "youtube-transcript-api>=1.2.4",
+    "yt-dlp>=2026.3.17",
 ]
