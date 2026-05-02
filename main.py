@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import json
 import streamlit as st
+import re
 load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY")
@@ -34,20 +35,14 @@ def format_timestamp(seconds):
     
 
 def get_transcript(parsed_url):
-    """ Fetches the video transcript from the provided id """
     try:
         ytt_api = YouTubeTranscriptApi()
-        transcripts = ytt_api.fetch(video_id=parsed_url, languages=['en'])
-        
-
-        full_text = " ".join(f"{format_timestamp(entry.start)} {entry.text}" for entry in transcripts.snippets)
-
+        transcripts = ytt_api.fetch(parsed_url)  # remove languages=['en'] and keyword arg
+        full_text = " ".join(f"{format_timestamp(entry.start)} {entry.text}" for entry in transcripts)
         return full_text, len(full_text.split())
     except Exception as e:
         print(f"Error could not fetch transcript - {e}")
-        print("  Note: This video may not have English captions available.")
         return None, 0
-
 
 
 def get_summary(transcript_with_times):
@@ -80,10 +75,14 @@ def get_summary(transcript_with_times):
     # Get a Response
     
     response = llm.invoke(messages)
+    text = response.content.strip()
     
-    text = response.content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-
-    return json.loads(text)
+    # Extract JSON more robustly
+    match = re.search(r'\{.*\}', text, re.DOTALL)
+    if not match:
+        raise ValueError("No JSON found in response")
+    
+    return json.loads(match.group())
 
 
 def main():
