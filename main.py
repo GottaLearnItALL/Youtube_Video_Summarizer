@@ -2,7 +2,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from urllib.parse import urlparse, parse_qs, urlsplit
-from youtube_transcript_api.proxies import WebshareProxyConfig
+from youtube_transcript_api.proxies import GenericProxyConfig
 import os
 from dotenv import load_dotenv
 import json
@@ -42,9 +42,9 @@ PROXY_PASS = os.getenv("PROXY_PASS") or st.secrets.get("PROXY_PASS")
 
 def get_transcript(parsed_url):
     try:
-        proxy_config = WebshareProxyConfig(
-            proxy_username=PROXY_USER,
-            proxy_password=PROXY_PASS,
+        proxy_config = GenericProxyConfig(
+            http_url=f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
+            https_url=f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
         )
         ytt_api = YouTubeTranscriptApi(proxy_config=proxy_config)
         transcripts = ytt_api.fetch(parsed_url)
