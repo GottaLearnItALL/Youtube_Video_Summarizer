@@ -2,4 +2,4 @@ anthropic
 streamlit
 langchain-anthropic
 python-dotenv
-yt-dlp
+yt_dlp
