@@ -5,10 +5,10 @@ from urllib.parse import urlparse, parse_qs, urlsplit
 import os
 from dotenv import load_dotenv
 import json
-
+import streamlit as st
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY")
 
 def id_extractor(url):
     """ Extract video ID from youtube url """
