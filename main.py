@@ -41,7 +41,7 @@ def get_transcript(parsed_url):
         full_text = " ".join(f"{format_timestamp(entry.start)} {entry.text}" for entry in transcripts)
         return full_text, len(full_text.split())
     except Exception as e:
-        print(f"Error could not fetch transcript - {e}")
+        raise Exception(f"Transcript error: {e}")
         return None, 0
 
 
@@ -81,7 +81,7 @@ def get_summary(transcript_with_times):
     match = re.search(r'\{.*\}', text, re.DOTALL)
     if not match:
         raise ValueError("No JSON found in response")
-        
+
     parsed = json.loads(match.group())
     print("Keys returned:", parsed.keys()) 
     
