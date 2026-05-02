@@ -1,3 +1,5 @@
 anthropic
 streamlit
-youtube_transcript_api
+langchain-anthropic
+python-dotenv
+yt-dlp

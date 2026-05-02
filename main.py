@@ -1,13 +1,13 @@
-from youtube_transcript_api import YouTubeTranscriptApi
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from urllib.parse import urlparse, parse_qs, urlsplit
-from youtube_transcript_api.proxies import GenericProxyConfig
+
 import os
 from dotenv import load_dotenv
 import json
 import streamlit as st
 import re
+import yt_dlp
 load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY")
@@ -40,19 +40,39 @@ PROXY_PORT = os.getenv("PROXY_PORT") or st.secrets.get("PROXY_PORT")
 PROXY_USER = os.getenv("PROXY_USER") or st.secrets.get("PROXY_USER")
 PROXY_PASS = os.getenv("PROXY_PASS") or st.secrets.get("PROXY_PASS")
 
-def get_transcript(parsed_url):
+import yt_dlp
+
+def get_transcript(video_id):
+    url = f"https://www.youtube.com/watch?v={video_id}"
     try:
-        proxy_config = GenericProxyConfig(
-            http_url=f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
-            https_url=f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
-        )
-        ytt_api = YouTubeTranscriptApi(proxy_config=proxy_config)
-        transcripts = ytt_api.fetch(parsed_url)
-        full_text = " ".join(f"{format_timestamp(entry.start)} {entry.text}" for entry in transcripts)
-        return full_text, len(full_text.split())
+        ydl_opts = {
+            'writesubtitles': True,
+            'writeautomaticsub': True,
+            'subtitleslangs': ['en'],
+            'skip_download': True,
+            'quiet': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            subtitles = info.get('subtitles') or info.get('automatic_captions', {})
+            en_subs = subtitles.get('en', [])
+            if not en_subs:
+                raise Exception("No English captions found")
+            
+            # Get the transcript text
+            transcript_url = en_subs[0]['url']
+            import requests
+            response = requests.get(transcript_url)
+            text = response.text
+            
+            # Clean up XML tags
+            import re
+            clean = re.sub(r'<[^>]+>', '', text)
+            clean = re.sub(r'\s+', ' ', clean).strip()
+            
+            return clean, len(clean.split())
     except Exception as e:
         raise Exception(f"Transcript error: {e}")
-
 
 def get_summary(transcript_with_times):
     """ Creates and Returns a neat formatted summary of the transcript.
