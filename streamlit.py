@@ -43,7 +43,8 @@ with col_main:
 
             st.markdown("---")
             st.header("📊 Summary Results")
-            st.info(results["summary"]["overview"])
+            if "summary" in results:
+                st.info(results["summary"]["overview"])
 
             st.subheader("1. CHAPTERS")
             for ch in results.get("chapters", []):
@@ -58,8 +59,9 @@ with col_main:
                 st.markdown(f'{i}. **{item["title"]}**: {item["description"]}')
 
             st.subheader("4. SUMMARY")
-            st.markdown(f'**Overview**\n\n{results["summary"]["overview"]}')
-            st.markdown(f'**Strengths and Target Audience**\n\n{results["summary"]["audience"]}')
+            if "summary" in results:
+                st.markdown(f'**Overview**\n\n{results["summary"].get("overview", "N/A")}')
+                st.markdown(f'**Strengths and Target Audience**\n\n{results["summary"].get("audience", "N/A")}')
 
 if 'summary' not in st.session_state:
     st.session_state.summary = None

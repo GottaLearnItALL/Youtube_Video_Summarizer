@@ -81,6 +81,9 @@ def get_summary(transcript_with_times):
     match = re.search(r'\{.*\}', text, re.DOTALL)
     if not match:
         raise ValueError("No JSON found in response")
+        
+    parsed = json.loads(match.group())
+    print("Keys returned:", parsed.keys()) 
     
     return json.loads(match.group())
 
